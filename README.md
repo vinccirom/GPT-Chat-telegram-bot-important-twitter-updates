@@ -30,6 +30,8 @@ The conditions that determine whether GPT-Chat classifies the tweet as important
   - `snscrape`
   - `python-telegram-bot`
   - `python-dotenv` 
+  - `requests` 
+  - `nest-asyncio`
 
 (Instructions for installing Python packages with pip can be found [here](https://pip.pypa.io/en/stable/quickstart/))
 
