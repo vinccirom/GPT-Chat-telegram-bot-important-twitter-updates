@@ -1,4 +1,4 @@
-# GPT-Chat-telegram-bot-important-twitter-updates
+# GPT-Chat Telegram Bot for important/relevant Tweets - @vinccirom
 
 **NOTICE:** This bot is intended for those who want to be informed about any relevant tweets containing any given set of words that fulfill your personal interests. By default, it's primary use is to notify mostly technical and interested users about GPT-Chat's underlying technology and it's effects. However, this can be ammended to utilize other words and other interests.
 
