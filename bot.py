@@ -121,7 +121,7 @@ tweets = []
 application = Application.builder().token(os.environ.get("TELEGRAM_API_KEY")).build()
 
 
-async def search_tweets(query, update):
+async def search_tweets(query, update, context):
     """Search for tweets containing the specified query and send a notification for each new tweet"""
     found_tweets = []
     # Use the snscrape package to search for tweets containing the specified query
@@ -135,7 +135,9 @@ async def search_tweets(query, update):
     for i, tweet in enumerate(reversed(found_tweets)):
         if tweet.id not in tweets:
             # Check if gpt-chat considers the tweet worthy of a notification
-            gptchat_response = await gptchat_notification_verifier(tweet, update)
+            gptchat_response = await gptchat_notification_verifier(
+                tweet, update, context
+            )
 
             # Loop until the request succeeds or the maximum number of retries is reached
             while True:
@@ -200,7 +202,7 @@ async def check_loading(update):
             retry_delay *= 2
 
 
-async def gptchat_notification_verifier(tweet, update: Update) -> None:
+async def gptchat_notification_verifier(tweet, update: Update, context) -> None:
     """Filter the tweet with GPT-Chat. Ask GPT-Chat to tell us if the tweet is worth notifying the user about."""
     prompt = f"""
     Lets play a game. You have been hired to spend all day reading tweets about gptchat and openAI. Your job is to make a selection of the most important, relevant or interesting tweets to your boss.
@@ -240,7 +242,7 @@ async def gptchat_notification_verifier(tweet, update: Update) -> None:
     NO
     Contains no important, relevant or interesting information regarding GPT-Chat or OpenAI since the boss already knows about it. 
 
-    The game starts now and below is the first tweet that you have to decide if it is worth notifying your colleagues about or not. 
+    The game starts now and below is the first tweet that you have to decide if it is worth notifying your boss about or not. 
     
     Tweet: {tweet.content}
     """
@@ -252,8 +254,14 @@ async def gptchat_notification_verifier(tweet, update: Update) -> None:
     elif response[:2] == "NO":
         return None
     else:
-        print("Invalid GPT-Chat response.")
-        return None
+        print(
+            "Invalid GPT-Chat response. Probably too many requests on ChatGPT. Waiting 5 minutes and trying again."
+        )
+        # It is likely that too many requests have been sent to ChatGPT, with the "Too many requests, please slow down" error message
+        time.sleep(60 * 5)
+        reload(update, context)
+        while response[:3] != "YES" or response[:2] != "NO":
+            await gptchat_notification_verifier(tweet, update, context)
 
 
 async def send_notification(tweet, gptchat_response):
@@ -288,7 +296,7 @@ async def start(update: Update, context: ContextTypes):
     running = True
     while running:
         query = current_date(query)
-        await search_tweets(query, update)
+        await search_tweets(query, update, context)
         # Wait 1 minute before searching for new tweets
         time.sleep(60)
 
