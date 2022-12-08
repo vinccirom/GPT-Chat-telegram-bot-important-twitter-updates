@@ -259,7 +259,9 @@ async def gptchat_notification_verifier(tweet, update: Update, context) -> None:
         )
         # It is likely that too many requests have been sent to ChatGPT, with the "Too many requests, please slow down" error message
         time.sleep(60 * 5)
+        # Instead of calling the reload function, we could use the /reload command on the chatbot
         reload(update, context)
+        time.sleep(10)
         while response[:3] != "YES" or response[:2] != "NO":
             await gptchat_notification_verifier(tweet, update, context)
 
@@ -291,6 +293,7 @@ async def start(update: Update, context: ContextTypes):
         f"Hi! I am your smart <b>GPT-Chat & OpenAI</b> bot that sends you notifications for every new tweet containing the words <b> GPT-Chat </b> or <b> openAI </b> (or any other variants of the same words) accounting for punctuations and case sensitivity. The notifications should include: \n - <b> The reason why GPT-Chat deemed the tweet worth sending a notification  \n - The date of the tweet  \n - The full content of the tweet  \n - Url of the tweet </b>  \n \n <b> NOTE: </b> To not bombard you with stupidity, I will filter the new tweets (using GPT-Chat itself) and only send you the ones that you might actually find interesting :)",
         parse_mode=telegram.constants.ParseMode.HTML,
     )
+    print("Bot started")
     date = datetime.datetime.now().strftime("%Y-%m-%d")
     query = "gptchat OR chatgpt OR chat-gpt OR gpt-chat openAI lang:en since:" + date
     running = True
@@ -323,8 +326,9 @@ async def help(update: Update, context: ContextTypes):
 
 async def stop(update: Update, context: ContextTypes):
     """Send a message when the command /stop is issued."""
+    print("Stopping the bot...")
     await update.message.reply_text("The bot will stop sending notifications.")
-
+    print("Bot stopped")
     # Stop the loop that searches for tweets and sends notifications
     global running
     running = False
